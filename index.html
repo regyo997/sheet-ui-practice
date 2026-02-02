@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>觀光區即時人流車流儀表板</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>觀光區即時儀表板</h1>
+            <p class="subtitle">Real-time Tourism Traffic Dashboard</p>
+            <div id="last-updated" class="last-updated">更新時間: 載入中...</div>
+        </header>
+
+        <main>
+            <!-- Key Metrics Cards -->
+            <div class="metrics-grid">
+                <div class="metric-card person-current">
+                    <div class="icon">👥</div>
+                    <div class="metric-info">
+                        <h2>當下人次</h2>
+                        <div class="value" id="current-visitors">--</div>
+                    </div>
+                </div>
+
+                <div class="metric-card car-current">
+                    <div class="icon">🚗</div>
+                    <div class="metric-info">
+                        <h2>當下車次</h2>
+                        <div class="value" id="current-vehicles">--</div>
+                    </div>
+                </div>
+
+                <div class="metric-card person-total">
+                    <div class="icon">📈</div>
+                    <div class="metric-info">
+                        <h2>累積人次</h2>
+                        <div class="value" id="total-visitors">--</div>
+                    </div>
+                </div>
+
+                <div class="metric-card car-total">
+                    <div class="icon">🚕</div>
+                    <div class="metric-info">
+                        <h2>累積車次</h2>
+                        <div class="value" id="total-vehicles">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="charts-container">
+                <div class="chart-wrapper">
+                    <h3>人流趨勢 (最近 7 筆)</h3>
+                    <canvas id="visitorsChart"></canvas>
+                </div>
+                <div class="chart-wrapper">
+                    <h3>車流趨勢 (最近 7 筆)</h3>
+                    <canvas id="vehiclesChart"></canvas>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>資料來源: 即時觀光統計數據</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
