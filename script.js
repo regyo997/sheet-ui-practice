@@ -1,7 +1,35 @@
-const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1coDkjr-pp5ILwziUBHcYLu0s-N3Q6WRr3kFGxG0gNh0/export?format=csv&gid=0';
+const SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/1rLNBWb_kXwvv7JOgjKy6WPLDysBZPrEM5GlP1t57xFE/export?format=csv&gid=0';
 
-let visitorsChartInstance = null;
-let vehiclesChartInstance = null;
+let allData = [];
+let currentPage = 0;
+const ITEMS_PER_PAGE = 9;
+const PAGE_SWITCH_INTERVAL = 10000; // 10 seconds
+
+// Initialize
+function init() {
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    fetchData();
+    // Refresh data every 1 minute
+    setInterval(fetchData, 60000);
+
+    // Page rotation
+    setInterval(() => {
+        if (allData.length > ITEMS_PER_PAGE) {
+            currentPage = (currentPage + 1) % Math.ceil(allData.length / ITEMS_PER_PAGE);
+            renderPage();
+        }
+    }, PAGE_SWITCH_INTERVAL);
+}
+
+function updateClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById('current-time').textContent = `${h}:${m}:${s}`;
+}
 
 async function fetchData() {
     try {
@@ -9,164 +37,80 @@ async function fetchData() {
         const csvText = await response.text();
         const rows = parseCSV(csvText);
 
-        if (rows.length > 0) {
-            updateDashboard(rows);
-            updateCharts(rows);
-            updateLastUpdatedTime();
-        }
+        // Filter: 顯示/隱藏 must be TRUE
+        allData = rows.filter(row => row.display === 'TRUE');
+
+        renderPage();
     } catch (error) {
         console.error('Error fetching data:', error);
-        document.getElementById('last-updated').textContent = '資料載入失敗，請檢查連線';
     }
 }
 
 function parseCSV(text) {
     const lines = text.trim().split('\n');
-    const headers = lines[0].split(',');
+    if (lines.length < 2) return [];
 
-    const data = lines.slice(1).map(line => {
-        const values = line.split(',');
-        return {
-            date: values[0],
-            totalVisitors: parseInt(values[1]),
-            totalVehicles: parseInt(values[2]),
-            currentVisitors: parseInt(values[3]),
-            currentVehicles: parseInt(values[4])
-        };
-    });
+    const headers = lines[0].split(',').map(h => h.trim());
 
-    // Check if the last row is empty or invalid, just in case
-    return data.filter(item => !isNaN(item.totalVisitors));
-}
+    return lines.slice(1).map(line => {
+        // Simple CSV split, handling potential commas in values if necessary
+        // But for this simple sheet, splitting by comma is likely enough
+        const values = line.split(',').map(v => v.trim());
+        const entry = {};
 
-function updateDashboard(data) {
-    const latest = data[data.length - 1]; // Get the last row
+        // Mapping based on provided headers:
+        // 梯次編號, 名稱, 起, 訖, 可報名人數, 已報名人數, 可遞補人數, 顯示/隱藏
+        entry.id = values[0];
+        entry.name = values[1];
+        entry.startTime = values[2];
+        entry.endTime = values[3];
+        entry.maxCapacity = values[4];
+        entry.registered = values[5];
+        entry.waiting = values[6];
+        entry.display = values[7];
 
-    // Animate numbers
-    animateValue("current-visitors", 0, latest.currentVisitors, 1000);
-    animateValue("current-vehicles", 0, latest.currentVehicles, 1000);
-    animateValue("total-visitors", 0, latest.totalVisitors, 1000);
-    animateValue("total-vehicles", 0, latest.totalVehicles, 1000);
-}
-
-function animateValue(id, start, end, duration) {
-    const obj = document.getElementById(id);
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
-function updateCharts(data) {
-    // Get last 7 records for the chart
-    const recentData = data.slice(-7);
-    const labels = recentData.map(d => d.date);
-    const visitorsData = recentData.map(d => d.currentVisitors);
-    const vehiclesData = recentData.map(d => d.currentVehicles);
-
-    initVisitorsChart(labels, visitorsData);
-    initVehiclesChart(labels, vehiclesData);
-}
-
-function initVisitorsChart(labels, data) {
-    const ctx = document.getElementById('visitorsChart').getContext('2d');
-
-    if (visitorsChartInstance) {
-        visitorsChartInstance.destroy();
-    }
-
-    visitorsChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: '當下人次',
-                data: data,
-                borderColor: '#38bdf8',
-                backgroundColor: 'rgba(56, 189, 248, 0.2)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#38bdf8',
-                pointRadius: 4
-            }]
-        },
-        options: getChartOptions('人次')
+        return entry;
     });
 }
 
-function initVehiclesChart(labels, data) {
-    const ctx = document.getElementById('vehiclesChart').getContext('2d');
+function renderPage() {
+    const gridMain = document.getElementById('grid-main');
+    gridMain.innerHTML = '';
 
-    if (vehiclesChartInstance) {
-        vehiclesChartInstance.destroy();
-    }
+    const startIdx = currentPage * ITEMS_PER_PAGE;
+    const pageItems = allData.slice(startIdx, startIdx + ITEMS_PER_PAGE);
 
-    vehiclesChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: '當下車次',
-                data: data,
-                borderColor: '#fcba03', // Orange/Yellowish
-                backgroundColor: 'rgba(252, 186, 3, 0.2)',
-                borderWidth: 3,
-                tension: 0.4,
-                fill: true,
-                pointBackgroundColor: '#ffffff',
-                pointBorderColor: '#fcba03',
-                pointRadius: 4
-            }]
-        },
-        options: getChartOptions('車次')
+    pageItems.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'card fade-in';
+        card.style.animationDelay = `${index * 0.05}s`;
+
+        card.innerHTML = `
+            <div class="card-header">
+                <h2 class="card-title">${item.name}</h2>
+                <div class="badge-circle">${item.id}</div>
+            </div>
+            <div class="stats-row">
+                <div class="stat-item">
+                    <div class="stat-label">可報名人數</div>
+                    <div class="stat-value blue">${item.maxCapacity}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">已報名人數</div>
+                    <div class="stat-value navy">${item.registered}</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">可遞補人數</div>
+                    <div class="stat-value green">${item.waiting}</div>
+                </div>
+            </div>
+        `;
+
+        gridMain.appendChild(card);
     });
+
+    // If less than 9 items, add placeholders to keep 3x3 structure if desired,
+    // or just let it be. Usually 3x3 looks better filled.
 }
 
-function getChartOptions(label) {
-    return {
-        responsive: true,
-        plugins: {
-            legend: {
-                display: false
-            }
-        },
-        scales: {
-            y: {
-                beginAtZero: true,
-                grid: {
-                    color: 'rgba(255, 255, 255, 0.1)'
-                },
-                ticks: {
-                    color: '#94a3b8'
-                }
-            },
-            x: {
-                grid: {
-                    display: false
-                },
-                ticks: {
-                    color: '#94a3b8'
-                }
-            }
-        }
-    };
-}
-
-function updateLastUpdatedTime() {
-    const now = new Date();
-    document.getElementById('last-updated').textContent = `更新時間: ${now.toLocaleTimeString()}`;
-}
-
-// Initial Fetch
-fetchData();
-
-// Auto-refresh every 5 seconds
-setInterval(fetchData, 5000);
+init();
