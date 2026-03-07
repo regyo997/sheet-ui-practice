@@ -1,0 +1,169 @@
+:root {
+    --bg-gradient: linear-gradient(180deg, #dbeafe 0%, #ffffff 100%);
+    --card-bg: #ffffff;
+    --text-title: #0f172a;
+    --text-label: #64748b;
+    --clr-gold: #c29b40;
+    --clr-val-1: #10b981;
+    /* Emerald for 可報名 */
+    --clr-val-2: #1e3a8a;
+    /* Navy for 已報名 */
+    --clr-val-3: #f59e0b;
+    /* Amber/Gold for 可遞補 */
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    --font-heading: 'Outfit', sans-serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--bg-gradient);
+    color: var(--text-title);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.dashboard-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1vh;
+}
+
+header {
+    text-align: center;
+    padding: 1vh 0;
+}
+
+#current-time {
+    font-family: var(--font-heading);
+    font-size: 5vh;
+    font-weight: 700;
+    color: var(--clr-gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1vh;
+}
+
+#current-time::before {
+    content: "當前時間 : ";
+}
+
+#current-time::after {
+    content: " (時:分:秒)";
+    font-size: 3vh;
+    opacity: 0.8;
+}
+
+.grid-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.card {
+    background: var(--card-bg);
+    box-shadow: var(--card-shadow);
+    border-radius: 1.5vh;
+    padding: 0 4vh;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 7vh;
+    margin: 0.4vh 1.5vh;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.card-title {
+    font-size: 2.4vh;
+    font-weight: 700;
+}
+
+.badge-circle {
+    width: 4vh;
+    height: 4vh;
+    background: linear-gradient(135deg, #a5b4fc, #6366f1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 1.8vh;
+}
+
+.stats-row {
+    display: flex;
+    gap: 5vh;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-label {
+    font-size: 1.6vh;
+    color: var(--text-label);
+    margin-bottom: 0.2vh;
+}
+
+.val {
+    font-family: var(--font-heading);
+    font-size: 2.8vh;
+    font-weight: 700;
+}
+
+.val.blue {
+    color: var(--clr-val-1);
+}
+
+.val.navy {
+    color: var(--clr-val-2);
+}
+
+.val.green {
+    color: var(--clr-val-3);
+}
+
+.logo-container {
+    display: flex;
+    justify-content: flex-end;
+    padding: 1vh 2vh;
+    flex-shrink: 0;
+}
+
+.logo-container img {
+    height: 5vh;
+    opacity: 0.6;
+}
+
+.fade-in {
+    animation: reveal 0.4s ease forwards;
+}
+
+@keyframes reveal {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
